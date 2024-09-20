@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 805ba186d7748964589e642713c97dc7, type: 3}
+  m_Name: ReleaseData-1.3.10
+  m_EditorClassIdentifier: 
+  PackageData: {fileID: 11400000, guid: 457cc1db9ab208947a202107b798c88f, type: 2}
+  ReleaseVersion: {x: 1, y: 3, z: 10}
+  ReadMe: {fileID: 4900000, guid: c4e7d2d5cd47f62438648cd95b3ec43b, type: 3}
+  Changelog: {fileID: 4900000, guid: 152328b72f7a8f64e98076f64998f8f7, type: 3}
+  Manifest: {fileID: 4900000, guid: 9ce2e5028bf749b40b18d1336f538acc, type: 3}
+  License: {fileID: 4900000, guid: d93fcc645ba7b5e4982193f85c741ef2, type: 3}
+  Icon: {fileID: 2800000, guid: 5a60900137f2b39469e056909a614dec, type: 3}
+  AssemblyFiles:
+  - {fileID: 102900000, guid: ce5f2341e5a9cf74bbeae5f9690ab366, type: 3}
