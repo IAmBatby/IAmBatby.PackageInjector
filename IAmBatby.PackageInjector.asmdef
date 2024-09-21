@@ -1,3 +1,14 @@
 {
-	"name": "IAmBatby.PackageInjector"
+    "name": "IAmBatby.PackageInjector",
+    "rootNamespace": "IAmBatby.PackageInjector",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   packageDataPath: Packages/com.iambatby.packageinjector/Packages
   targetPluginsPath: Assets/LethalCompany/Tools/Plugins
+  testColor: {r: 0.16862746, g: 0.16078432, b: 0.16862746, a: 0}
   packageInfos:
   - PackageName: ExtendedPathfinding
     packageFolder: Assets/LethalCompany/Tools/Plugins/ExtendedPathfinding

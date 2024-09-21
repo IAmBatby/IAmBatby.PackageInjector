@@ -19,8 +19,13 @@ namespace IAmBatby.PackageInjector
 
         public static Vector2 monoScroll;
         public static Vector2 scriptableScroll;
-
         public static Vector2 allPackagesScroll;
+
+        public enum PackageInfoType { Overview, Downloads, Installs }
+        public PackageInfoType CurrentPackageInfoTypeSetting;
+
+        public RectOffset previousPadding;
+
         [MenuItem("PackageInjector/Manage Packages")]
         public static void OpenWindow()
         {
@@ -77,6 +82,8 @@ namespace IAmBatby.PackageInjector
             {
                 if (DownloadHandlerBehaviour.Instance != null)
                     DownloadHandlerBehaviour.Instance.TryGetManifest(newThunderstoreURL);
+                else
+                    Debug.LogError("DownloadHandler Not Found!");
             }
 
             EditorGUILayout.EndHorizontal();
@@ -156,67 +163,151 @@ namespace IAmBatby.PackageInjector
 
         public void DrawSelectedPackageData(PackageData packageData, Rect titleRect)
         {
-            float size = 100;
-            GUILayout.Space(15);
-            Rect newTitleRect = EditorGUILayout.BeginHorizontal();
+            float size = 125;
+
+            EditorGUILayout.BeginVertical();
+
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.BeginVertical();
+
             GUIStyle headerStyle = new GUIStyle("SettingsHeader");
             EditorGUILayout.SelectableLabel(packageData.PackageFileName, headerStyle);
-            EditorGUILayout.EndHorizontal();
-            EditorGUILayout.BeginVertical();
+
+
             EditorGUILayout.SelectableLabel(packageData.Version, new GUIStyle("ProfilerSelectedLabel"), GUILayout.MaxHeight(15));
             EditorGUILayout.SelectableLabel("By " + packageData.PackageAuthor, GUILayout.MaxHeight(15));
             GUIStyle newStyle = new GUIStyle("WordWrappedMiniLabel");
             newStyle.fontStyle = FontStyle.Italic;
             EditorGUILayout.SelectableLabel(packageData.ID, newStyle);
-            EditorGUILayout.EndVertical();
-            EditorGUILayout.Space(15);
 
-            EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Download Latest Release", GUILayout.MaxWidth(200)))
+            EditorGUILayout.EndVertical();
+            GUILayout.FlexibleSpace();
+            EditorGUILayout.BeginVertical();
+
+            GUILayout.Space(2.5f);
+
+            GUIStyle imageStyle = new GUIStyle("AC ComponentButton");
+            imageStyle.fixedWidth = size;
+            imageStyle.fixedHeight = size;
+            imageStyle.stretchWidth = true;
+            imageStyle.stretchHeight = true;
+            imageStyle.alignment = TextAnchor.MiddleRight;
+            imageStyle.imagePosition = ImagePosition.ImageOnly;
+            imageStyle.padding = new RectOffset(0, 0, 0, 0);
+
+            if (packageData.Icon != null)
+                GUILayout.Button(packageData.Icon, imageStyle, GUILayout.Width(size));
+
+            GUILayout.Space(10);
+
+
+            if (GUILayout.Button("Download Latest", GUILayout.MaxWidth(size)))
                 if (DownloadHandlerBehaviour.Instance != null)
                     DownloadHandlerBehaviour.Instance.TryDownloadLatest(packageData);
 
-            if (GUILayout.Button("Refresh Installs", GUILayout.MaxWidth(200)))
+            if (GUILayout.Button("Refresh Installs", GUILayout.MaxWidth(size)))
                 foreach (ReleaseData releaseData in packageData.InstalledReleases)
                     releaseData.Populate(packageData, packageData.VersionNumber);
 
+
+            EditorGUILayout.EndVertical();
+
+            GUILayout.Space(5);
+
             EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.EndVertical();
+
+            EditorGUILayout.Space(15);
+
+            EditorGUILayout.BeginVertical();
+            
+            EditorGUILayout.BeginHorizontal();
+            {
+                if (GUILayout.Button("Overview", GUILayout.MaxWidth(100)))
+                    CurrentPackageInfoTypeSetting = PackageInfoType.Overview;
+                if (GUILayout.Button("Downloads", GUILayout.MaxWidth(100)))
+                    CurrentPackageInfoTypeSetting = PackageInfoType.Downloads;
+                if (GUILayout.Button("Installs", GUILayout.MaxWidth(100)))
+                    CurrentPackageInfoTypeSetting = PackageInfoType.Installs;
+            }
+            EditorGUILayout.EndHorizontal();
+
             EditorGUILayout.Space(5);
 
-            Rect rect = DrawValue("Package Name:", packageData.PackageName);
-            DrawValue("Package Author:", packageData.PackageAuthor);
-            DrawValue("Package Description:", packageData.PackageDescription);
-            //DrawValue("Package Version:", packageData.Version);
-            EditorGUILayout.BeginHorizontal(GUILayout.ExpandWidth(false));
-            EditorGUI.BeginDisabledGroup(true);
-            EditorGUILayout.PrefixLabel("Version:", EditorStyles.boldLabel);
-            Vector3Int version = packageData.VersionNumber;
-            EditorGUILayout.IntField(version.x, GUILayout.MaxWidth(20));
-            EditorGUILayout.IntField(version.y, GUILayout.MaxWidth(20));
-            EditorGUILayout.IntField(version.z, GUILayout.MaxWidth(20));
-            EditorGUILayout.EndHorizontal();
-            EditorGUI.EndDisabledGroup();
-            DrawValue("Package URL:", packageData.URL);
+            EditorGUILayout.BeginVertical(Utilities.CreateStyle(true, Utilities.GetColor(43f, 41f, 43f)));
 
-            GUILayout.Space(15);
+            if (CurrentPackageInfoTypeSetting == PackageInfoType.Overview)
+                DrawPackageOverview(packageData);
+            else if (CurrentPackageInfoTypeSetting == PackageInfoType.Downloads)
+                DrawPackageDownloads(packageData);
+            else if (CurrentPackageInfoTypeSetting == PackageInfoType.Installs)
+                DrawPackageInstall(packageData);
 
-            DrawValue("Package Location:", packageData.PackageFolder);
+            EditorGUILayout.EndVertical();
 
-            if (packageData.AssemblyAsset != null)
+            EditorGUILayout.EndVertical();
+        }
+
+        public void DrawPackageOverview(PackageData packageData)
+        {
+            Utilities.DrawValue("Package Name:", packageData.PackageName);
+            Utilities.DrawValue("Package Author:", packageData.PackageAuthor);
+            Utilities.DrawValue("Package Description:", packageData.PackageDescription);
+            Utilities.DrawValue("Version:", packageData.VersionNumber);
+            Utilities.DrawValue("Package URL:", packageData.URL);
+
+        }
+
+        public void DrawPackageDownloads(PackageData packageData)
+        {
+            foreach (ReleaseData releaseData in packageData.InstalledReleases)
             {
-                EditorGUILayout.BeginHorizontal(GUILayout.ExpandWidth(false));
-                EditorGUI.BeginDisabledGroup(true);
-                EditorGUILayout.PrefixLabel("Assembly Asset:", EditorStyles.boldLabel);
-                EditorGUILayout.ObjectField(packageData.AssemblyAsset, typeof(DefaultAsset));
+                EditorGUILayout.BeginHorizontal();
+                Utilities.DrawValue("Version:", releaseData.ReleaseVersion);
+                Utilities.DrawValue(string.Empty, releaseData.Path);
                 EditorGUILayout.EndHorizontal();
-                EditorGUI.EndDisabledGroup();
             }
-            EditorGUILayout.BeginVertical();
+        }
+
+        public void DrawPackageInstall(PackageData packageData)
+        {
+            Utilities.DrawValue("Package Location:", packageData.PackageFolder);
+
             if (packageData.AssemblyAsset != null)
             {
+
                 if (packageData.ScriptableObjects.Count == 0 && packageData.MonoBehaviours.Count == 0)
                     packageData.PopulateTypes();
 
+                Utilities.DrawValue("Assembly:", packageData.AssemblyAsset, EditorStyles.boldLabel, true, GUILayout.ExpandWidth(false));
+
+                AssetImporter assetImporter = AssetImporter.GetAtPath(packageData.AssetsFolder);
+                if (assetImporter != null && assetImporter is PluginImporter plugin)
+                {
+                    foreach (SerializedProperty property in Utilities.FindSerializedProperties(plugin))
+                        if (property.propertyType == SerializedPropertyType.Boolean)
+                            Utilities.DrawValue(string.Empty, property, readOnly: false);
+
+                    if (GUILayout.Button("Apply MonoScript Icons"))
+                    {
+                        foreach (MonoScript monoBehaviour in packageData.MonoBehaviours)
+                        {
+                            plugin.SetIcon(monoBehaviour.GetClass().FullName, packageData.Icon);
+                            EditorUtility.SetDirty(monoBehaviour);
+                        }
+                        foreach (MonoScript scriptableObject in packageData.ScriptableObjects)
+                        {
+                            plugin.SetIcon(scriptableObject.GetClass().FullName, packageData.Icon);
+                            EditorUtility.SetDirty(scriptableObject);
+                        }
+                        EditorUtility.SetDirty(plugin);
+                        AssetDatabase.SaveAssetIfDirty(packageData);
+                        plugin.SaveAndReimport();
+                    }
+                }
+
+                EditorGUILayout.BeginVertical();
                 typesBool = EditorGUILayout.BeginFoldoutHeaderGroup(typesBool, "View Assembly Contents");
 
                 if (typesBool)
@@ -224,36 +315,21 @@ namespace IAmBatby.PackageInjector
                     EditorGUILayout.PrefixLabel("MonoBehaviours", EditorStyles.boldLabel);
                     monoScroll = EditorGUILayout.BeginScrollView(monoScroll);
                     foreach (MonoScript monoBehaviourType in packageData.MonoBehaviours)
-                    {
-                        EditorGUILayout.BeginHorizontal(GUILayout.ExpandWidth(false));
-                        EditorGUI.BeginDisabledGroup(true);
-                        EditorGUILayout.ObjectField(monoBehaviourType, typeof(MonoScript));
-                        EditorGUILayout.EndHorizontal();
-                        EditorGUI.EndDisabledGroup();
-                    }
+                        Utilities.DrawValue(string.Empty, monoBehaviourType, options: GUILayout.ExpandWidth(false));
                     EditorGUILayout.EndScrollView();
 
                     EditorGUILayout.PrefixLabel("ScriptableObjects", EditorStyles.boldLabel);
                     scriptableScroll = EditorGUILayout.BeginScrollView(scriptableScroll);
                     foreach (MonoScript scriptableObjectType in packageData.ScriptableObjects)
-                    {
-                        EditorGUILayout.BeginHorizontal(GUILayout.ExpandWidth(false));
-                        EditorGUI.BeginDisabledGroup(true);
-                        EditorGUILayout.ObjectField(scriptableObjectType, typeof(MonoScript));
-                        EditorGUILayout.EndHorizontal();
-                        EditorGUI.EndDisabledGroup();
-                    }
+                        Utilities.DrawValue(string.Empty, scriptableObjectType, options: GUILayout.ExpandWidth(false));
                     EditorGUILayout.EndScrollView();
                 }
 
                 EditorGUILayout.EndFoldoutHeaderGroup();
-            }
-            EditorGUILayout.EndVertical();
 
-            Rect newRect = new Rect(new Vector2(newTitleRect.max.x - (size + 10), newTitleRect.position.y), new Vector2(size,size));
-            if (packageData.Icon != null)
-                EditorGUI.DrawPreviewTexture(newRect, packageData.Icon.texture);
-          
+                EditorGUILayout.EndVertical();
+            }
+
         }
 
         public Rect DrawValue(string title, string value)

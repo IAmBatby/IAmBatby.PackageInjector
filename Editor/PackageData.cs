@@ -21,7 +21,7 @@ namespace IAmBatby.PackageInjector
         [field: SerializeField] public string LatestReleaseURL { get; private set; }
         public string ID => "com." + PackageAuthor.ToLowerInvariant() + "." + PackageName.ToLowerInvariant();
         [field: SerializeField] public string Version { get; private set; }
-        [field: SerializeField] public Sprite Icon { get; set; }
+        [field: SerializeField] public Texture2D Icon { get; set; }
 
 
 

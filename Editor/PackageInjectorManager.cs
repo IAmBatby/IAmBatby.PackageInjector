@@ -25,6 +25,8 @@ namespace IAmBatby.PackageInjector
         public string packageDataPath;
         public string targetPluginsPath;
 
+        public Color testColor;
+
         public List<PackageInfo> packageInfos = new List<PackageInfo>();
 
         [MenuItem("PackageInjector/Populate Packages")]

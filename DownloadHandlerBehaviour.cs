@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Properties;
 using UnityEditor;
-using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.Networking;
 using System.IO.Compression;
@@ -37,7 +36,7 @@ namespace IAmBatby.PackageInjector
 
         public void TrySetIcon(PackageData packageData)
         {
-            StartCoroutine(GetIcon(packageData));
+            //StartCoroutine(GetIcon(packageData));
         }
 
         public void TryDownloadLatest(PackageData packageData)
@@ -172,7 +171,7 @@ namespace IAmBatby.PackageInjector
                 Texture2D t = texDl.texture;
                 Sprite s = Sprite.Create(t, new Rect(0, 0, t.width, t.height),
                     Vector2.zero, 1f);
-                package.Icon = s;
+                //package.Icon = s;
             }
         }
 

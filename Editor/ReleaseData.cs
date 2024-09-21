@@ -9,6 +9,7 @@ namespace IAmBatby.PackageInjector
     {
         [field: SerializeField] public PackageData PackageData;
         [field: SerializeField] public Vector3Int ReleaseVersion;
+        [field: SerializeField] public string Path;
 
         [field: SerializeField] public TextAsset ReadMe;
         [field: SerializeField] public TextAsset Changelog;
@@ -23,9 +24,9 @@ namespace IAmBatby.PackageInjector
         public void Populate(PackageData packageData, Vector3Int version)
         {
             AssemblyFiles.Clear();
-            string path = packageData.PackageInjectorFolder + "/" + packageData.Version;
+            Path = packageData.PackageInjectorFolder + "/" + packageData.Version;
 
-            foreach (string guid in AssetDatabase.FindAssets(string.Empty, new[]{path}))
+            foreach (string guid in AssetDatabase.FindAssets(string.Empty, new[]{Path}))
             {
                 UnityEngine.Object releaseAsset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(AssetDatabase.GUIDToAssetPath(guid));
                 if (releaseAsset != null)
@@ -48,8 +49,8 @@ namespace IAmBatby.PackageInjector
                 }
             }
 
-
             PackageData = packageData;
+            PackageData.Icon = Icon;
             if (!packageData.InstalledReleases.Contains(this))
                 PackageData.InstalledReleases.Add(this);
             ReleaseVersion = version;
