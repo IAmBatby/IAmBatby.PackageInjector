@@ -22,13 +22,6 @@ namespace IAmBatby.PackageInjector
             }
         }
 
-        public void TryDownloadPackage(PackageInfo packageInfo)
-        {
-            TryDeletePackage(packageInfo);
-            AssetDatabase.DisallowAutoRefresh();
-            StartCoroutine(DownloadPackageInfo(packageInfo));
-        }
-
         public void TryGetManifest(string thunderstoreURL)
         {
             StartCoroutine(GetManifest(thunderstoreURL));
@@ -42,47 +35,6 @@ namespace IAmBatby.PackageInjector
         public void TryDownloadLatest(PackageData packageData)
         {
             StartCoroutine(DownloadLatestRelease(packageData));
-        }
-
-        private void TryDeletePackage(PackageInfo packageInfo)
-        {
-            DefaultAsset assembly = (DefaultAsset)AssetDatabase.LoadAssetAtPath(packageInfo.assetsPath, typeof(DefaultAsset));
-            if (assembly != null)
-            {
-                Debug.Log("Found Preexisting Install Of Package!");
-                if (AssetDatabase.DeleteAsset(packageInfo.assetsPath))
-                    Debug.Log("Deleted Preexisting Install!");
-            }
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-        }
-
-
-        private IEnumerator DownloadPackageInfo(PackageInfo packageInfo)
-        {
-            string debugString = string.Empty;
-            UnityWebRequest unityWebRequest = new UnityWebRequest(packageInfo.dllLinkPath, UnityWebRequest.kHttpVerbGET);
-            unityWebRequest.downloadHandler = new DownloadHandlerFile(packageInfo.fullPath);
-
-            yield return unityWebRequest.SendWebRequest();
-            yield return new WaitUntil(() => unityWebRequest.result != UnityWebRequest.Result.InProgress);
-
-            if (unityWebRequest.result != UnityWebRequest.Result.Success)
-            {
-                debugString = "Failed To Download: " + packageInfo.PackageName + "\n";
-                debugString += "Link: " + packageInfo.dllLinkPath + "\n";
-                debugString += "Destination: " + packageInfo.fullPath + "\n";
-                debugString += "Result: " + unityWebRequest.result + "\n";
-                debugString += "Code: " + unityWebRequest.responseCode + "\n";
-                Debug.LogError(debugString);
-            }
-            else
-            {
-                debugString = "Succesfully Downloaded: " + packageInfo.PackageName;
-                Debug.Log(debugString);
-            }
-
-            OnDownloadFinished();
         }
 
         public string GetThunderstoreAPIURL(string projectNamespace, string projectName)
@@ -158,42 +110,6 @@ namespace IAmBatby.PackageInjector
             }
 
             Debug.Log("Finished Download With Status: " + unityWebRequest.result);
-        }
-        
-        private IEnumerator GetIcon(PackageData package)
-        {
-            UnityWebRequest wr = new UnityWebRequest(package.SeekValue("icon"));
-            DownloadHandlerTexture texDl = new DownloadHandlerTexture(true);
-            wr.downloadHandler = texDl;
-            yield return wr.SendWebRequest();
-            if (wr.result == UnityWebRequest.Result.Success)
-            {
-                Texture2D t = texDl.texture;
-                Sprite s = Sprite.Create(t, new Rect(0, 0, t.width, t.height),
-                    Vector2.zero, 1f);
-                //package.Icon = s;
-            }
-        }
-
-        private void ParseManifestData(string downloadHandlerText)
-        {
-            Debug.Log("Author: " + SeekText(downloadHandlerText, "\"owner\":", ","));
-            Debug.Log("Version: " + SeekText(downloadHandlerText, "\"version_number\":", ","));
-            Debug.Log("Thunderstore URL: " + SeekText(downloadHandlerText, "\"package_url\":", ","));
-            Debug.Log("Descripton: " + SeekText(downloadHandlerText, "\"description\":", ","));
-        }
-
-        private string SeekText(string text, string searchTerm, string endIdentifier)
-        {
-            if (text.Contains(searchTerm))
-            {
-                string skip = text.Substring(text.IndexOf(searchTerm) + searchTerm.Length);
-
-                string result = skip.Replace(skip.Substring(skip.IndexOf(endIdentifier)), string.Empty);
-                return (result);
-            }
-            Debug.LogError("Could Not Find Text With: " + searchTerm);
-            return (text);
         }
 
         private void OnDownloadFinished()
