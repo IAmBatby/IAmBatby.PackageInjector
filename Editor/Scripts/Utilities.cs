@@ -30,6 +30,43 @@ namespace IAmBatby.PackageInjector
         public static int HeaderFontSize = 14;
         public static int TextFontSize = 13;
 
+        [SerializeField] private static string applicationProjectPath;
+
+        public static string GetFullPath(string unityPath)
+        {
+            if (string.IsNullOrEmpty(applicationProjectPath))
+                applicationProjectPath = Application.dataPath.Remove(Application.dataPath.LastIndexOf("/"));
+
+            return (applicationProjectPath + "/" + unityPath);
+        }
+
+        public static T CreateAndSave<T>(string path, string name = "temp") where T: ScriptableObject
+        {
+            AssetDatabase.CreateAsset(ScriptableObject.CreateInstance<T>(), path + "/" + name + ".asset");
+            return (AssetDatabase.LoadAssetAtPath(path + "/" + name + ".asset", typeof(T)) as T);
+        }
+
+        public static void SetAssetName<T>(T asset, string newName) where T : UnityEngine.Object
+        {
+            string path = AssetDatabase.GetAssetPath(asset);
+            string newPath = path.Replace("/" + asset.name + ".", "/" + newName + ".");
+            AssetDatabase.RenameAsset(path, newPath);
+            Debug.LogError("Failed To Rename Asset: \n Original Path: " + path + "\n New Path: " +  newPath);
+        }
+
+        public static string GetAssetPath(UnityEngine.Object asset, bool getLocalPath = true, bool includeFile = false)
+        {
+            string localPath = AssetDatabase.GetAssetPath(asset);
+
+            if (includeFile == false)
+                localPath = localPath.Remove(localPath.LastIndexOf("/"));
+
+            if (getLocalPath == true)
+                return (localPath);
+            else
+                return (GetFullPath(localPath));
+        }
+
         public static Color GetColor(float newR, float newG, float newB)
         {
             return (new Color(newR / 255f, newG / 255f, newB / 255f ));

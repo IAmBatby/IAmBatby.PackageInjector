@@ -1,0 +1,18 @@
+{
+    "name": "IAmBatby.PackageInjector.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:8f4792cbc29c462419fc22ed2fdea9c1"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

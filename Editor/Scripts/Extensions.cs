@@ -66,15 +66,21 @@ namespace IAmBatby.PackageInjector
 
         public static string SeekText(this string text, string searchTerm, string endIdentifier)
         {
-            if (text.Contains(searchTerm))
+            string returnText = text;
+            if (returnText.Contains(searchTerm))
             {
-                string skip = text.Substring(text.IndexOf(searchTerm) + searchTerm.Length);
+                string skip = returnText.Substring(returnText.IndexOf(searchTerm) + searchTerm.Length);
 
                 string result = skip.Replace(skip.Substring(skip.IndexOf(endIdentifier)), string.Empty);
                 return (result);
             }
             Debug.LogError("Could Not Find Text With: " + searchTerm);
-            return (text);
+            return (returnText);
+        }
+
+        public static string ToFullPath(this string localUnityPath)
+        {
+            return (Utilities.GetFullPath(localUnityPath));
         }
     }
 }

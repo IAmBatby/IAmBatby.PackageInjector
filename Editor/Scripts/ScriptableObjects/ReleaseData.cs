@@ -20,11 +20,14 @@ namespace IAmBatby.PackageInjector
 
         [field: SerializeField] public List<DefaultAsset> AssemblyFiles = new List<DefaultAsset>();
 
+        [field: SerializeField] public List<DefaultAsset> InstalledAssemblyFiles = new List<DefaultAsset>();
+
 
         public void Populate(PackageData packageData, Vector3Int version)
         {
+            
             AssemblyFiles.Clear();
-            Path = packageData.PackageInjectorFolder + "/" + packageData.Version;
+            Path = packageData.ManagedPath + "/" + packageData.LatestVersionName;
 
             foreach (string guid in AssetDatabase.FindAssets(string.Empty, new[]{Path}))
             {
@@ -45,16 +48,20 @@ namespace IAmBatby.PackageInjector
                     else if (releaseAsset is Texture2D iconAsset)
                         Icon = iconAsset;
                     else if (releaseAsset is DefaultAsset assemblyAsset)
-                        AssemblyFiles.Add(assemblyAsset);
+                    {
+                        string path = AssetDatabase.GetAssetPath(assemblyAsset);
+                        AssetImporter plugin = AssetImporter.GetAtPath(path);
+                        if (plugin != null && plugin is PluginImporter)
+                            AssemblyFiles.Add(assemblyAsset);
+                    }
                 }
             }
 
             PackageData = packageData;
-            PackageData.Icon = Icon;
             if (!packageData.InstalledReleases.Contains(this))
                 PackageData.InstalledReleases.Add(this);
             ReleaseVersion = version;
-            name = "ReleaseData-" + packageData.Version;
+            Utilities.SetAssetName(this, "ReleaseData-" + packageData.LatestVersionName);         
         }
 
     }

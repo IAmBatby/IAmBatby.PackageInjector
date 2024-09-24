@@ -12,7 +12,6 @@ namespace IAmBatby.PackageInjector
     {
         public static string newPackageURL;
         public static string newThunderstoreURL;
-        public static List<PackageData> allPackages;
         public static PackageData SelectedPackage { get; private set; }
 
         public static bool typesBool;
@@ -26,25 +25,13 @@ namespace IAmBatby.PackageInjector
 
         public RectOffset previousPadding;
 
+        public List<PackageData> AllPackages => PackageInjectorManager.instance.AllPackages;
+
         [MenuItem("PackageInjector/Manage Packages")]
         public static void OpenWindow()
         {
-            TryRefresh();
             PackageInjectorEditorWindow window = GetWindow<PackageInjectorEditorWindow>();
             window.Show();
-        }
-
-        public static void TryRefresh()
-        {
-            if (allPackages == null)
-                allPackages = FindAssets<PackageData>();
-            else
-                foreach (PackageData package in allPackages)
-                    if (package == null)
-                    {
-                        allPackages = null;
-                        break;
-                    }
         }
 
         public static List<T> FindAssets<T>() where T : UnityEngine.Object
@@ -68,8 +55,6 @@ namespace IAmBatby.PackageInjector
 
         public void OnGUI()
         {
-            TryRefresh();
-
             GUILayout.ExpandWidth(false);
             GUI.skin.label.richText = true;
             GUI.skin.textField.richText = true;
@@ -79,18 +64,13 @@ namespace IAmBatby.PackageInjector
             newThunderstoreURL = EditorGUILayout.TextField(newThunderstoreURL);
 
             if (GUILayout.Button("Add New Thunderstore Package"))
-            {
-                if (DownloadHandlerBehaviour.Instance != null)
-                    DownloadHandlerBehaviour.Instance.TryGetManifest(newThunderstoreURL);
-                else
-                    Debug.LogError("DownloadHandler Not Found!");
-            }
+                PackageInjectorManager.TryDownloadNewPackageData(newThunderstoreURL);
 
             EditorGUILayout.EndHorizontal();
 
 
-            if (SelectedPackage == null && allPackages != null && allPackages.Count > 0)
-                SelectedPackage = allPackages[0];
+            if (SelectedPackage == null && AllPackages != null && AllPackages.Count > 0)
+                SelectedPackage = AllPackages[0];
 
             //Main Window
 
@@ -126,8 +106,8 @@ namespace IAmBatby.PackageInjector
 
             allPackagesScroll = EditorGUILayout.BeginScrollView(allPackagesScroll, false, true, GUILayout.ExpandWidth(false));
 
-            if (allPackages != null)
-                foreach (PackageData data in allPackages)
+            if (AllPackages != null)
+                foreach (PackageData data in AllPackages)
                     DrawPackageData(data);
 
             EditorGUILayout.EndScrollView();
@@ -147,7 +127,7 @@ namespace IAmBatby.PackageInjector
                 SetColor(newStyle.hover.background, blue);
                 SetColor(newStyle.active.background, blue);
             }
-            if (GUILayout.Button(packageData.PackageFileName, newStyle))
+            if (GUILayout.Button(packageData.Name, newStyle))
                 SelectedPackage = packageData;
         }
 
@@ -171,14 +151,14 @@ namespace IAmBatby.PackageInjector
             EditorGUILayout.BeginVertical();
 
             GUIStyle headerStyle = new GUIStyle("SettingsHeader");
-            EditorGUILayout.SelectableLabel(packageData.PackageFileName, headerStyle);
+            EditorGUILayout.SelectableLabel(packageData.Name, headerStyle);
 
 
-            EditorGUILayout.SelectableLabel(packageData.Version, new GUIStyle("ProfilerSelectedLabel"), GUILayout.MaxHeight(15));
-            EditorGUILayout.SelectableLabel("By " + packageData.PackageAuthor, GUILayout.MaxHeight(15));
+            EditorGUILayout.SelectableLabel(packageData.LatestVersionName, new GUIStyle("ProfilerSelectedLabel"), GUILayout.MaxHeight(15));
+            EditorGUILayout.SelectableLabel("By " + packageData.Author, GUILayout.MaxHeight(15));
             GUIStyle newStyle = new GUIStyle("WordWrappedMiniLabel");
             newStyle.fontStyle = FontStyle.Italic;
-            EditorGUILayout.SelectableLabel(packageData.ID, newStyle);
+            EditorGUILayout.SelectableLabel(packageData.UUID, newStyle);
 
             EditorGUILayout.EndVertical();
             GUILayout.FlexibleSpace();
@@ -202,12 +182,15 @@ namespace IAmBatby.PackageInjector
 
 
             if (GUILayout.Button("Download Latest", GUILayout.MaxWidth(size)))
-                if (DownloadHandlerBehaviour.Instance != null)
-                    DownloadHandlerBehaviour.Instance.TryDownloadLatest(packageData);
+                PackageInjectorManager.TryDownloadLatestPackageVersion(packageData);
+
+            if (packageData.InstalledReleases.Count > 0)
+                if (GUILayout.Button("Install Latest", GUILayout.MaxWidth(size)))
+                    PackageInjectorManager.TryInstallRelease(packageData.InstalledReleases.First());
 
             if (GUILayout.Button("Refresh Installs", GUILayout.MaxWidth(size)))
                 foreach (ReleaseData releaseData in packageData.InstalledReleases)
-                    releaseData.Populate(packageData, packageData.VersionNumber);
+                    releaseData.Populate(packageData, packageData.LatestVersion);
 
 
             EditorGUILayout.EndVertical();
@@ -251,11 +234,12 @@ namespace IAmBatby.PackageInjector
 
         public void DrawPackageOverview(PackageData packageData)
         {
-            Utilities.DrawValue("Package Name:", packageData.PackageName);
-            Utilities.DrawValue("Package Author:", packageData.PackageAuthor);
-            Utilities.DrawValue("Package Description:", packageData.PackageDescription);
-            Utilities.DrawValue("Version:", packageData.VersionNumber);
-            Utilities.DrawValue("Package URL:", packageData.URL);
+            Utilities.DrawValue("Package Name:", packageData.Name);
+            Utilities.DrawValue("Package Author:", packageData.Author);
+            Utilities.DrawValue("Package Description:", packageData.Description);
+            Utilities.DrawValue("Version:", packageData.LatestVersion);
+            packageData.TryGetLatestPackageURL(out string url);
+            Utilities.DrawValue("Package URL:", url);
 
         }
 
@@ -272,8 +256,8 @@ namespace IAmBatby.PackageInjector
 
         public void DrawPackageInstall(PackageData packageData)
         {
-            Utilities.DrawValue("Package Location:", packageData.PackageFolder);
-
+            Utilities.DrawValue("Package Location:", packageData.InstallPath);
+            /*
             if (packageData.AssemblyAsset != null)
             {
 
@@ -329,54 +313,8 @@ namespace IAmBatby.PackageInjector
 
                 EditorGUILayout.EndVertical();
             }
+            */
 
-        }
-
-        public Rect DrawValue(string title, string value)
-        {
-            Rect rect = EditorGUILayout.BeginHorizontal(GUILayout.ExpandWidth(false));
-            EditorGUI.BeginDisabledGroup(true);
-            EditorGUILayout.PrefixLabel(title, EditorStyles.boldLabel);
-            if (!string.IsNullOrEmpty(value))
-                EditorGUILayout.TextField(value, EditorStyles.textField);
-            EditorGUI.EndDisabledGroup();
-            EditorGUILayout.EndHorizontal();
-            return (rect);
-        }
-
-        public static void CreateNewPackageData(string downloadHandlerText)
-        {
-            if (AssetDatabase.IsValidFolder(PackageInjectorManager.Instance.packageDataPath))
-            {
-                PackageData newPackageData = ScriptableObject.CreateInstance<PackageData>();
-                newPackageData.Populate(downloadHandlerText);
-                string location = newPackageData.PackageDataLocation;
-                string newFolder = newPackageData.PackageInjectorFolder;
-                if (AssetDatabase.IsValidFolder(newPackageData.PackageInjectorFolder) == false)
-                {
-                    Debug.Log("Creating New Package Folder At: " + newFolder.Replace(newFolder.Substring(newFolder.IndexOf("/")), string.Empty) + " : " + newFolder.Substring(newFolder.IndexOf("/") + 1));
-                    AssetDatabase.CreateFolder(PackageInjectorManager.Instance.packageDataPath, newPackageData.ID);
-                }
-                if (AssetDatabase.IsValidFolder(newFolder) == false)
-                {
-                    Debug.LogError("Failed To Make Package Folder!");
-                    return;
-                }
-                AssetDatabase.CreateAsset(newPackageData, location);
-                newPackageData = (PackageData)AssetDatabase.LoadAssetAtPath(location, typeof(PackageData));
-                newPackageData.Populate(downloadHandlerText);
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
-                allPackages = null;
-            }
-            else
-                Debug.LogError("Folder Path: " + PackageInjectorManager.Instance.packageDataPath + " Is Invalid!");
-        }
-
-        public void TryParseManifest(string newThunderstoreURL)
-        {
-            if (DownloadHandlerBehaviour.Instance != null)
-                DownloadHandlerBehaviour.Instance.TryGetManifest(newThunderstoreURL);
         }
     }
 }
