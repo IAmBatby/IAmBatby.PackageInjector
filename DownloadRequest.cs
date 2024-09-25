@@ -67,10 +67,20 @@ namespace IAmBatby.PackageInjector
 
             if (unityWebRequest.result == UnityWebRequest.Result.Success)
             {
-                string localPath = DestinationPath.Substring(DestinationPath.IndexOf("Packages/"));
-                ZipFile.ExtractToDirectory(destinationPath, localPath + "/" + FileName);
-                System.IO.File.Delete(destinationPath);
-                SuccessCallback.Invoke(Value);
+                try
+                {
+                    string localPath = DestinationPath.Substring(DestinationPath.IndexOf("Packages/"));
+                    ZipFile.ExtractToDirectory(destinationPath, localPath + "/" + FileName);
+                    AssetDatabase.ImportAsset(localPath + "/" + FileName, ImportAssetOptions.ImportRecursive);
+                    //AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+                    System.IO.File.Delete(destinationPath);
+                    SuccessCallback.Invoke(Value);
+                }
+                catch
+                {
+
+                }
+
             }
             else
                 Debug.LogError("Finished Download: " + destinationPath + " With Status: " + unityWebRequest.result);

@@ -30,6 +30,7 @@ namespace IAmBatby.PackageInjector
         [MenuItem("PackageInjector/Manage Packages")]
         public static void OpenWindow()
         {
+            PackageInjectorManager.Validate();
             PackageInjectorEditorWindow window = GetWindow<PackageInjectorEditorWindow>();
             window.Show();
         }
@@ -58,6 +59,13 @@ namespace IAmBatby.PackageInjector
             GUILayout.ExpandWidth(false);
             GUI.skin.label.richText = true;
             GUI.skin.textField.richText = true;
+
+            if (EditorApplication.isCompiling || EditorApplication.isUpdating)
+            {
+                EditorGUILayout.SelectableLabel("Editor Refreshing...");
+                return;
+            }
+
 
             EditorGUILayout.BeginHorizontal();
 
@@ -180,18 +188,8 @@ namespace IAmBatby.PackageInjector
 
             GUILayout.Space(10);
 
-
-            if (GUILayout.Button("Download Latest", GUILayout.MaxWidth(size)))
-                PackageInjectorManager.TryDownloadLatestPackageVersion(packageData);
-
-            if (packageData.InstalledReleases.Count > 0)
-                if (GUILayout.Button("Install Latest", GUILayout.MaxWidth(size)))
-                    PackageInjectorManager.TryInstallRelease(packageData.InstalledReleases.First());
-
-            if (GUILayout.Button("Refresh Installs", GUILayout.MaxWidth(size)))
-                foreach (ReleaseData releaseData in packageData.InstalledReleases)
-                    releaseData.Populate(packageData, packageData.LatestVersion);
-
+            if (GUILayout.Button("Uninstall", GUILayout.MaxWidth(size)))
+                PackageInjectorManager.UninstallPackage(packageData);
 
             EditorGUILayout.EndVertical();
 

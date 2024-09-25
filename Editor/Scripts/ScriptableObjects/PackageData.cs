@@ -90,13 +90,31 @@ namespace IAmBatby.PackageInjector
 
         protected virtual string GetIconURL => string.Empty;
 
-        protected Vector3Int ParseVersion(string versionText)
+        private const string versionSeperator = ".";
+        protected static Vector3Int ParseVersion(string versionText)
         {
-            return (Vector3Int.one);
-            string xFloat = versionText.Replace(versionText.Substring(versionText.IndexOf(".")), string.Empty);
-            string yFloat = versionText.Substring(versionText.IndexOf(".") + 1).Replace(versionText.Substring(versionText.IndexOf(".")), string.Empty);
-            string zFloat = versionText.Substring(versionText.LastIndexOf(".") + 1);
-            return (new Vector3Int((int)float.Parse(xFloat), (int)float.Parse(yFloat), (int)float.Parse(zFloat)));
+            List<string> stringList = new List<string>();
+            Vector3Int returnInt = Vector3Int.zero;
+
+            string inputString = versionText;
+
+            while (inputString.Contains(versionSeperator))
+            {
+                string inputStringWithoutTextBeforeFirstComma = inputString.Substring(inputString.IndexOf(versionSeperator));
+                stringList.Add(inputString.Replace(inputStringWithoutTextBeforeFirstComma, ""));
+                if (inputStringWithoutTextBeforeFirstComma.Contains(versionSeperator))
+                    inputString = inputStringWithoutTextBeforeFirstComma.Substring(inputStringWithoutTextBeforeFirstComma.IndexOf(versionSeperator) + 1);
+
+            }
+            stringList.Add(inputString);
+
+            if (stringList.Count > 0 && int.TryParse(stringList[0], out int xResult))
+                returnInt.x = xResult;
+            if (stringList.Count > 1 && int.TryParse(stringList[1], out int yResult))
+                returnInt.y = yResult;
+            if (stringList.Count > 2 && int.TryParse(stringList[2], out int zResult))
+                returnInt.z = zResult;
+            return (returnInt);
         }
     }
 }

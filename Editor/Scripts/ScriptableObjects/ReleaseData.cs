@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -28,7 +29,6 @@ namespace IAmBatby.PackageInjector
             
             AssemblyFiles.Clear();
             Path = packageData.ManagedPath + "/" + packageData.LatestVersionName;
-
             foreach (string guid in AssetDatabase.FindAssets(string.Empty, new[]{Path}))
             {
                 UnityEngine.Object releaseAsset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(AssetDatabase.GUIDToAssetPath(guid));
@@ -60,8 +60,7 @@ namespace IAmBatby.PackageInjector
             PackageData = packageData;
             if (!packageData.InstalledReleases.Contains(this))
                 PackageData.InstalledReleases.Add(this);
-            ReleaseVersion = version;
-            Utilities.SetAssetName(this, "ReleaseData-" + packageData.LatestVersionName);         
+            ReleaseVersion = version;  
         }
 
     }

@@ -67,6 +67,22 @@ namespace IAmBatby.PackageInjector
                 return (GetFullPath(localPath));
         }
 
+        public static bool TryGetPlugin(DefaultAsset assembly, out PluginImporter plugin)
+        {
+            plugin = null;
+            AssetImporter importer = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(assembly));
+            if (importer != null && importer is PluginImporter foundPlugin)
+                plugin = foundPlugin;
+            return (plugin != null);
+        }
+
+        public static void TrySetBuildTarget(DefaultAsset assemblyAsset, BuildTarget target, bool status)
+        {
+            AssetImporter importer = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(assemblyAsset));
+            if (importer != null && importer is PluginImporter plugin)
+                plugin.SetCompatibleWithPlatform(target, status);
+        }
+
         public static Color GetColor(float newR, float newG, float newB)
         {
             return (new Color(newR / 255f, newG / 255f, newB / 255f ));
