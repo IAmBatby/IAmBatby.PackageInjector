@@ -26,6 +26,6 @@ namespace IAmBatby.PackageInjector
 
         public static void ProcessDownloadRequest<T>(ZipDownloadRequest<T> request) => TryStartCoroutine(request.ProcessRequest());
 
-        public static void TryStartCoroutine(IEnumerator coroutine) => Instance?.StartCoroutine(coroutine);
+        private static void TryStartCoroutine(IEnumerator coroutine) => Instance?.StartCoroutine(coroutine);
     }
 }

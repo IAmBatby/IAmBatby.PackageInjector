@@ -71,8 +71,10 @@ namespace IAmBatby.PackageInjector
             {
                 string skip = returnText.Substring(returnText.IndexOf(searchTerm) + searchTerm.Length);
 
-                string result = skip.Replace(skip.Substring(skip.IndexOf(endIdentifier)), string.Empty);
-                return (result);
+                if (skip.Contains(endIdentifier))
+                    return (skip.Replace(skip.Substring(skip.IndexOf(endIdentifier)), string.Empty));
+                else
+                    return (skip);
             }
             Debug.LogError("Could Not Find Text With: " + searchTerm);
             return (returnText);

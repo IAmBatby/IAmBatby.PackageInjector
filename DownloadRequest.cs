@@ -71,19 +71,25 @@ namespace IAmBatby.PackageInjector
                 {
                     string localPath = DestinationPath.Substring(DestinationPath.IndexOf("Packages/"));
                     ZipFile.ExtractToDirectory(destinationPath, localPath + "/" + FileName);
+
+                    //Garbage but
+                    string licenseLocation = DestinationPath + "/" + FileName + "/" + "LICENSE";
+                    if (System.IO.File.Exists(licenseLocation))
+                        System.IO.File.Move(licenseLocation, licenseLocation + ".md");
+
                     AssetDatabase.ImportAsset(localPath + "/" + FileName, ImportAssetOptions.ImportRecursive);
                     //AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
                     System.IO.File.Delete(destinationPath);
                     SuccessCallback.Invoke(Value);
                 }
-                catch
+                catch (Exception e)
                 {
-
+                    Debug.LogException(e);
                 }
 
             }
             else
-                Debug.LogError("Finished Download: " + destinationPath + " With Status: " + unityWebRequest.result);
+                Debug.LogError("Finished Download Of: " + URL + " To: " + destinationPath + " With Status: " + unityWebRequest.result + "\n" + unityWebRequest.error);
         }
     }
 }

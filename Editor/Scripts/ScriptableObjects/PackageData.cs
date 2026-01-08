@@ -50,12 +50,6 @@ namespace IAmBatby.PackageInjector
 
         }
 
-        private void OnEnable()
-        {
-            if (!PackageInjectorManager.instance.AllPackages.Contains(this))
-                PackageInjectorManager.instance.AllPackages.Add(this);
-        }
-
         private void OnDestroy()
         {
             if (PackageInjectorManager.instance.AllPackages.Contains(this))
@@ -82,6 +76,12 @@ namespace IAmBatby.PackageInjector
         {
             packageURL = GetLatestPackageURL;
             return (!string.IsNullOrEmpty(packageURL));
+        }
+
+        public virtual bool ValidateLink(string link, out string correctedLink)
+        {
+            correctedLink = string.Empty;
+            return (false);
         }
 
         protected virtual string GetLatestPackageURL => string.Empty;

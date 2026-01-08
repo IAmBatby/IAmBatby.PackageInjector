@@ -12,7 +12,12 @@ namespace IAmBatby.PackageInjector
     {
         public static string newPackageURL;
         public static string newThunderstoreURL;
+
         public static PackageData SelectedPackage { get; private set; }
+
+        private static List<Type> allPackageTypes = new List<Type>();
+        private static Type selectedPackageType = null;
+        private static PackageData temporarayPackage;
 
         public static bool typesBool;
 
@@ -31,6 +36,7 @@ namespace IAmBatby.PackageInjector
         public static void OpenWindow()
         {
             PackageInjectorManager.Validate();
+            allPackageTypes = (List<Type>)Utilities.GetTypes(typeof(PackageData), false);
             PackageInjectorEditorWindow window = GetWindow<PackageInjectorEditorWindow>();
             window.Show();
         }
@@ -66,13 +72,18 @@ namespace IAmBatby.PackageInjector
                 return;
             }
 
+            if (allPackageTypes == null || allPackageTypes.Count == 0)
+                allPackageTypes = (List<Type>)Utilities.GetTypes(typeof(PackageData), false);
+
 
             EditorGUILayout.BeginHorizontal();
 
             newThunderstoreURL = EditorGUILayout.TextField(newThunderstoreURL);
 
-            if (GUILayout.Button("Add New Thunderstore Package"))
-                PackageInjectorManager.TryDownloadNewPackageData(newThunderstoreURL);
+            selectedPackageType = Utilities.InsertPopup(allPackageTypes, selectedPackageType, string.Empty);
+
+            if (GUILayout.Button("Add New Package"))
+                ValidateAndDownloadLink(newThunderstoreURL);
 
             EditorGUILayout.EndHorizontal();
 
@@ -313,6 +324,21 @@ namespace IAmBatby.PackageInjector
             }
             */
 
+        }
+
+        public static void ValidateAndDownloadLink(string link)
+        {
+            PackageData tempPackageData = CreateInstance(selectedPackageType) as PackageData;
+
+            if (tempPackageData is ThunderstorePackageData thunderstorePackage)
+                if (thunderstorePackage.ValidateLink(link, out string correctedTSLink))
+                    PackageInjectorManager.TryDownloadNewPackageData<ThunderstorePackageData>(correctedTSLink);
+            if (tempPackageData is GithubPackageData githubPackage)
+                if (githubPackage.ValidateLink(link, out string correctedGitLink))
+                    PackageInjectorManager.TryDownloadNewPackageData<GithubPackageData>(correctedGitLink);
+            if (tempPackageData is NugetPackageData nugetPackageData)
+                if (nugetPackageData.ValidateLink(link,out string correctedNugetPackageLink))
+                    PackageInjectorManager.TryDownloadNewPackageData<NugetPackageData>(correctedNugetPackageLink);
         }
     }
 }

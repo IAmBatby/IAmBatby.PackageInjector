@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
@@ -110,7 +112,7 @@ namespace IAmBatby.PackageInjector
             {
                 if (value is string stringValue)
                     EditorGUILayout.TextField(stringValue, contentStyle);
-                else if (value is Object objectValue)
+                else if (value is UnityEngine.Object objectValue)
                     EditorGUILayout.ObjectField(objectValue, typeof(T), allowSceneObjects: false);
                 else if (value is Vector3Int vector3Value)
                 {
@@ -196,7 +198,7 @@ namespace IAmBatby.PackageInjector
             return (returnList);
         }
 
-        public static List<SerializedProperty> FindSerializedProperties(Object nonSerializedObject)
+        public static List<SerializedProperty> FindSerializedProperties(UnityEngine.Object nonSerializedObject)
         {
             return (FindSerializedProperties(new SerializedObject(nonSerializedObject)));
         }
@@ -217,6 +219,54 @@ namespace IAmBatby.PackageInjector
                 while (serializedProperty.NextVisible(false));
             }
             return (returnList);
+        }
+
+        public static T InsertPopup<T>(List<T> popupOptions, T currentSelection, string labelText)
+        {
+            string[] valueNames = null;
+
+            if (popupOptions is List<Type> typeOptions)
+                valueNames = typeOptions.Select(o => o.Name).ToArray();
+            else
+                valueNames = popupOptions.Select(o => o.ToString()).ToArray();
+
+            T returnValue = default;
+
+            returnValue = InsertPopup<T>(popupOptions, valueNames, currentSelection, labelText);
+
+            return (returnValue);
+        }
+
+        public static T InsertPopup<T>(List<T> popupOptions, string[] popupNames, T currentSelection, string labelText)
+        {
+            if (popupOptions == null || popupOptions.Count == 0) return default;
+            if (currentSelection == null || !popupOptions.Contains(currentSelection))
+                currentSelection = popupOptions.First();
+            int returnIndex = popupOptions.IndexOf(currentSelection);
+
+            if (!string.IsNullOrEmpty(labelText))
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField(labelText);
+            }
+
+            T returnValue = popupOptions[EditorGUILayout.Popup(returnIndex, popupNames)];
+
+            if (!string.IsNullOrEmpty(labelText))
+                EditorGUILayout.EndHorizontal();
+
+            return (returnValue);
+        }
+
+        public static IEnumerable<Type> GetTypes(Type filterType, bool includeFilterType = true)
+        {
+            List<Type> moveTypes = new List<Type>();
+
+            foreach (Type type in Assembly.GetExecutingAssembly().GetTypes())
+                if ((includeFilterType == true && type == filterType) || type.IsSubclassOf(filterType))
+                    moveTypes.Add(type);
+
+            return (moveTypes);
         }
 
     }

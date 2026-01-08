@@ -69,16 +69,21 @@ namespace IAmBatby.PackageInjector
             }
         }
 
-        public static void TryDownloadNewPackageData(string userURL)
+        [MenuItem("Package Injector/Debug Link Results")]
+        public static void DebugLinkResults()
         {
-            //Awful, Thunderstore Hardcoded And No Validation
-            string skippedUrl = userURL.Substring(userURL.IndexOf("/p/") + 3);
-            string projectNamespace = skippedUrl.Replace(skippedUrl.Substring(skippedUrl.IndexOf("/")), string.Empty);
-            string projectName = skippedUrl.Substring(skippedUrl.IndexOf("/") + 1);
-            projectName = projectName.Replace("/", string.Empty);
-            string url = "https://thunderstore.io/api/experimental/package/" + projectNamespace + "/" + projectName + "/";
+            DownloadHandlerBehaviour.ProcessDownloadRequest(new TextDownloadRequest(PackageInjectorEditorWindow.newThunderstoreURL, LogText));
+        }
 
-            DownloadHandlerBehaviour.ProcessDownloadRequest(new TextDownloadRequest(url, CreateNewPackageData<ThunderstorePackageData>));
+        private static void LogText(string text)
+        {
+            PackageInjectorEditorWindow.newPackageURL = text;
+            Debug.Log(text);
+        }
+
+        public static void TryDownloadNewPackageData<T>(string correctedLink) where T : PackageData
+        {
+            DownloadHandlerBehaviour.ProcessDownloadRequest(new TextDownloadRequest(correctedLink, CreateNewPackageData<T>));
         }
 
         public static void CreateNewPackageData<T>(string downloadHandlerText) where T : PackageData
@@ -96,6 +101,9 @@ namespace IAmBatby.PackageInjector
                 AssetDatabase.CreateAsset(newPackageData, newPackageData.LocalLocation);
                 newPackageData = AssetDatabase.LoadAssetAtPath(newPackageData.LocalLocation, typeof(T)) as T;
                 newPackageData.SetManifestData(downloadHandlerText);
+                if (!instance.AllPackages.Contains(newPackageData))
+                    instance.AllPackages.Add(newPackageData);
+                EditorUtility.SetDirty(instance);
                 TryDownloadLatestPackageVersion(newPackageData);
             }
         }
@@ -123,7 +131,7 @@ namespace IAmBatby.PackageInjector
             EditorUtility.SetDirty(packageData);
 
             instance.RecentlyInstalledPackages.Add(newReleaseData.PackageData);
-            instance.Save(true);
+            //instance.Save(true);
 
             AssetDatabase.AllowAutoRefresh();
             AssetDatabase.SaveAssets();
@@ -164,12 +172,10 @@ namespace IAmBatby.PackageInjector
                         AssetDatabase.MoveAsset(currentPath, idealPath);
                 }
 
-                Debug.Log(releasePath);
                 foreach (string guid in AssetDatabase.FindAssets(string.Empty, new[] { releasePath }))
                 {
                     UnityEngine.Object asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(AssetDatabase.GUIDToAssetPath(guid));
                     string assetPath = AssetDatabase.GetAssetPath(asset);
-                    Debug.Log(assetPath);
                     if (AssetDatabase.IsValidFolder(assetPath))
                         AssetDatabase.DeleteAsset(assetPath);
                 }

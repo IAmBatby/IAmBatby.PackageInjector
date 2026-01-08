@@ -20,6 +20,17 @@ namespace IAmBatby.PackageInjector
             throw new System.NotImplementedException();
         }
 
+        public override bool ValidateLink(string link, out string correctedLink)
+        {
+            string skippedUrl = link.Substring(link.IndexOf("/p/") + 3);
+            string projectNamespace = skippedUrl.Replace(skippedUrl.Substring(skippedUrl.IndexOf("/")), string.Empty);
+            string projectName = skippedUrl.Substring(skippedUrl.IndexOf("/") + 1);
+            projectName = projectName.Replace("/", string.Empty);
+            correctedLink = "https://thunderstore.io/api/experimental/package/" + projectNamespace + "/" + projectName + "/";
+
+            return (true);
+        }
+
         protected override string GetLatestPackageURL => "https://thunderstore.io/package/" + Author + "/" + Name + "/";
         protected override string GetLatestReleaseURL => "https://thunderstore.io/package/download/" + Author + "/" + Name + "/" + LatestVersionName + "/";
         protected override string GetIconURL => "https://gcdn.thunderstore.io/live/repository/icons/" + Author + "-" + Name + "-" + LatestVersionName + ".png";
